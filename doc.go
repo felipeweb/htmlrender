@@ -1,4 +1,4 @@
-/*Package htmlrender is a package that provides functionality for easily rendering HTML templates.
+/*Package htmlrender is a package that provides functionality for easily rendering HTML templates based on https://github.com/unrolled/render.
 
   package main
 

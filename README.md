@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/felipeweb/htmlrender.svg?branch=master)](https://travis-ci.org/felipeweb/htmlrender) [![GoDoc](https://godoc.org/github.com/felipeweb/htmlrender?status.svg)](https://godoc.org/github.com/felipeweb/htmlrender)
 
-Package htmlrender is a package that provides functionality for easily rendering HTML templates.
+Package htmlrender is a package that provides functionality for easily rendering HTML templates based on [https://github.com/unrolled/render](https://github.com/unrolled/render).
 
   ```go
   package main
