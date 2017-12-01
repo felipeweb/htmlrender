@@ -1,7 +1,6 @@
 package htmlrender
 
 import (
-	"bytes"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -11,7 +10,8 @@ import (
 )
 
 const (
-	ContentHTML = "text/html"
+	// ContentTypeHTML value
+	ContentTypeHTML = "text/html"
 	// ContentType header constant.
 	ContentType = "Content-Type"
 	// Default character encoding.
@@ -23,9 +23,9 @@ type Options struct {
 	// Directory to load templates. Default is "views".
 	Directory string
 	// Funcs is a slice of FuncMaps to apply to the template upon compilation. This is useful for helper functions. Defaults to [].
-	Funcs     []template.FuncMap
+	Funcs []template.FuncMap
 	// Appends the given character set to the Content-Type header. Default is "UTF-8".
-	Charset   string
+	Charset string
 }
 
 // Render is a service that provides functions for easily writing HTML templates out to a HTTP Response.
@@ -73,7 +73,7 @@ func (r *Render) compileTemplatesFromDir() {
 	r.templates.Delims("{{", "}}")
 
 	// Walk the supplied directory and compile any files that match our extension list.
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error { // nolint
 		// Fix same-extension-dirs bug: some dir might be named to: "local.html".
 		// These dirs should be excluded as they are not valid golang templates, but files under
 		// them should be treat as normal.
@@ -90,7 +90,7 @@ func (r *Render) compileTemplatesFromDir() {
 		ext := ""
 		extension := ".html"
 
-		if strings.Index(rel, ".") != -1 {
+		if strings.Contains(rel, ".") {
 			ext = filepath.Ext(rel)
 		}
 
@@ -100,7 +100,7 @@ func (r *Render) compileTemplatesFromDir() {
 				panic(err)
 			}
 
-			name := (rel[0 : len(rel) - len(ext)])
+			name := (rel[0 : len(rel)-len(ext)])
 			tmpl := r.templates.New(filepath.ToSlash(name))
 
 			// Add our funcmaps.
@@ -122,12 +122,6 @@ func (r *Render) TemplateLookup(t string) *template.Template {
 	return r.templates.Lookup(t)
 }
 
-func (r *Render) execute(name string, binding interface{}) (*bytes.Buffer, error) {
-	buf := new(bytes.Buffer)
-	return buf, r.templates.ExecuteTemplate(buf, name, binding)
-}
-
-
 // Render is the generic function called by HTML, and can be called by custom implementations.
 func (r *Render) Render(w http.ResponseWriter, e Engine, data interface{}) error {
 	err := e.Render(w, data)
@@ -141,7 +135,7 @@ func (r *Render) Render(w http.ResponseWriter, e Engine, data interface{}) error
 func (r *Render) HTML(w http.ResponseWriter, status int, name string, binding interface{}) error {
 
 	head := Head{
-		ContentType: ContentHTML + r.compiledCharset,
+		ContentType: ContentTypeHTML + r.compiledCharset,
 		Status:      status,
 	}
 

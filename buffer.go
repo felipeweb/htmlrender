@@ -1,6 +1,8 @@
 package htmlrender
 
-import "bytes"
+import (
+	"bytes"
+)
 
 // bufPool represents a reusable buffer pool for executing templates into.
 var bufPool *BufferPool
@@ -25,7 +27,7 @@ func (bp *BufferPool) Get() (b *bytes.Buffer) {
 	case b = <-bp.c:
 	// reuse existing buffer
 	default:
-	// create new buffer
+		// create new buffer
 		b = bytes.NewBuffer([]byte{})
 	}
 	return

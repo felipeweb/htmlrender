@@ -39,7 +39,10 @@ func (h HTML) Render(w http.ResponseWriter, binding interface{}) error {
 	}
 
 	h.Head.Write(w)
-	out.WriteTo(w)
+	_, err = out.WriteTo(w)
+	if err != nil {
+		return err
+	}
 
 	// Return the buffer to the pool.
 	bufPool.Put(out)

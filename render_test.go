@@ -1,6 +1,5 @@
 package htmlrender
 
-
 import (
 	"html/template"
 	"net/http"
@@ -43,7 +42,7 @@ func TestHTMLBasic(t *testing.T) {
 
 	expectNil(t, err)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(ContentType), ContentHTML+"; charset=UTF-8")
+	expect(t, res.Header().Get(ContentType), ContentTypeHTML+"; charset=UTF-8")
 	expect(t, res.Body.String(), "<h1>Hello gophers</h1>")
 }
 
@@ -88,7 +87,7 @@ func TestHTMLNested(t *testing.T) {
 
 	expectNil(t, err)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(ContentType), ContentHTML+"; charset=UTF-8")
+	expect(t, res.Header().Get(ContentType), ContentTypeHTML+"; charset=UTF-8")
 	expect(t, res.Body.String(), "<h1>Admin gophers</h1>")
 }
 
@@ -110,7 +109,6 @@ func TestHTMLBadPath(t *testing.T) {
 	expect(t, res.Code, 500)
 }
 
-
 func TestHTMLDefaultCharset(t *testing.T) {
 	render := New(Options{
 		Directory: "testdata/basic",
@@ -127,7 +125,7 @@ func TestHTMLDefaultCharset(t *testing.T) {
 
 	expectNil(t, err)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(ContentType), ContentHTML+"; charset=UTF-8")
+	expect(t, res.Header().Get(ContentType), ContentTypeHTML+"; charset=UTF-8")
 
 	expect(t, res.Body.String(), "<h1>Hello gophers</h1>")
 }
@@ -151,7 +149,7 @@ func TestHTMLNoRace(t *testing.T) {
 		h.ServeHTTP(res, req)
 
 		expect(t, res.Code, 200)
-		expect(t, res.Header().Get(ContentType), ContentHTML+"; charset=UTF-8")
+		expect(t, res.Header().Get(ContentType), ContentTypeHTML+"; charset=UTF-8")
 		expect(t, res.Body.String(), "<h1>Hello gophers</h1>")
 		done <- true
 	}
