@@ -1,6 +1,7 @@
 package htmlrender
 
 import (
+	"errors"
 	"html/template"
 	"net/http"
 	"net/http/httptest"
@@ -158,4 +159,46 @@ func TestHTMLNoRace(t *testing.T) {
 	go doreq()
 	<-done
 	<-done
+}
+
+func TestHTMLLoadFromAssets(t *testing.T) {
+	render := New(Options{
+		Asset: func(file string) ([]byte, error) {
+			switch file {
+			case "views/test.html":
+				return []byte("<h1>gophers</h1>"), nil
+			default:
+				return nil, errors.New("file not found: " + file)
+			}
+		},
+		AssetNames: func() []string {
+			return []string{"views/test.html"}
+		},
+	})
+
+	var err error
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err = render.HTML(w, http.StatusOK, "test", "gophers")
+	})
+
+	res := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/foo", nil)
+	h.ServeHTTP(res, req)
+
+	expectNil(t, err)
+	expect(t, res.Code, 200)
+	expect(t, res.Header().Get(ContentType), ContentTypeHTML+"; charset=UTF-8")
+	expect(t, res.Body.String(), "<h1>gophers</h1>")
+}
+
+func TestCompileTemplatesFromDir(t *testing.T) {
+	baseDir := "testdata/basic"
+	fnameRel := "hello"
+
+	r := New(Options{
+		Directory: baseDir,
+	})
+	r.compileTemplatesFromDir()
+
+	expect(t, r.TemplateLookup(fnameRel) != nil, true)
 }

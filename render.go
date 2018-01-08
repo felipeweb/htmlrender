@@ -1,6 +1,7 @@
 package htmlrender
 
 import (
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -22,6 +23,10 @@ const (
 type Options struct {
 	// Directory to load templates. Default is "views".
 	Directory string
+	// Asset function to use in place of directory. Defaults to nil.
+	Asset func(name string) ([]byte, error)
+	// AssetNames function to use in place of directory. Defaults to nil.
+	AssetNames func() []string
 	// Funcs is a slice of FuncMaps to apply to the template upon compilation. This is useful for helper functions. Defaults to [].
 	Funcs []template.FuncMap
 	// Appends the given character set to the Content-Type header. Default is "UTF-8".
@@ -50,7 +55,7 @@ func New(options ...Options) *Render {
 	}
 
 	r.prepareOptions()
-	r.compileTemplatesFromDir()
+	r.compileTemplates()
 
 	return &r
 }
@@ -64,6 +69,54 @@ func (r *Render) prepareOptions() {
 
 	if len(r.opt.Directory) == 0 {
 		r.opt.Directory = "views"
+	}
+}
+
+func (r *Render) compileTemplates() {
+	if r.opt.Asset == nil || r.opt.AssetNames == nil {
+		r.compileTemplatesFromDir()
+		return
+	}
+	r.compileTemplatesFromAsset()
+}
+
+func (r *Render) compileTemplatesFromAsset() {
+	dir := r.opt.Directory
+	r.templates = template.New(dir)
+	r.templates.Delims("{{", "}}")
+	for _, path := range r.opt.AssetNames() {
+		if !strings.HasPrefix(path, dir) {
+			continue
+		}
+
+		rel, err := filepath.Rel(dir, path)
+		if err != nil {
+			panic(err)
+		}
+
+		ext := ""
+		if strings.Contains(rel, ".") {
+			ext = "." + strings.Join(strings.Split(rel, ".")[1:], ".")
+		}
+		extension := ".html"
+		if ext == extension {
+			fmt.Println(path)
+			buf, err := r.opt.Asset(path)
+			if err != nil {
+				panic(err)
+			}
+
+			name := (rel[0 : len(rel)-len(ext)])
+			tmpl := r.templates.New(filepath.ToSlash(name))
+
+			// Add our funcmaps.
+			for _, funcs := range r.opt.Funcs {
+				tmpl = tmpl.Funcs(funcs)
+			}
+
+			// Break out if this parsing fails. We don't want any silent server starts.
+			template.Must(tmpl.Parse(string(buf)))
+		}
 	}
 }
 
@@ -105,7 +158,7 @@ func (r *Render) compileTemplatesFromDir() {
 
 			// Add our funcmaps.
 			for _, funcs := range r.opt.Funcs {
-				tmpl.Funcs(funcs)
+				tmpl = tmpl.Funcs(funcs)
 			}
 
 			// Break out if this parsing fails. We don't want any silent server starts.
