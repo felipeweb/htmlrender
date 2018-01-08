@@ -1,7 +1,6 @@
 package htmlrender
 
 import (
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -100,7 +99,6 @@ func (r *Render) compileTemplatesFromAsset() {
 		}
 		extension := ".html"
 		if ext == extension {
-			fmt.Println(path)
 			buf, err := r.opt.Asset(path)
 			if err != nil {
 				panic(err)
